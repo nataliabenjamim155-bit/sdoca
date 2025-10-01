@@ -1,63 +1,25 @@
-.paragrafo{
-    color:black;
-}
-.paragrafo{
+p {
+    color: black;
     font-size: 30px;
-}
-.paragrafo{
     font-style: oblique;
 }
-.paragrafo{
-    border-style:double;
-}
-.paragrafo{
-    background-color:blueviolet;
+
+#sobre {
+    font-size: medium;
 }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+nav {
+    background-color: rgb(255, 0, 98);
+    padding: 7px;
+}
+
+.link_menu {
+    color: aliceblue;
+    text-decoration: none;
+}
+
+.item_menu{
+    list-style: none;
+}
+
+
