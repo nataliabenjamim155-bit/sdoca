@@ -17,13 +17,44 @@ nav {
     margin-top: 20px;
 }
 
+ul {
+    display: flex;
+    gap: 20px;
+}
+
 .link_menu {
     color: aliceblue;
     text-decoration: none;
 }
 
-.item_menu{
+.item_menu {
     list-style: none;
 }
 
+.campo_body {
+    background: #33972a;
+    justify-content:center;
+    align-items: baseline;
+}
 
+label {
+    background: rgb(110, 75, 46);
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+input,
+textarea,
+select {
+    padding: 10px;
+    border: 1px solid #09388f;
+    border-radius: 7px;
+    font-size: 19px;
+    outline: nane;
+    transition: border 0.3s;
+}
