@@ -1,3 +1,10 @@
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: rgb(102, 158, 46);
+}
+
 p {
     color: black;
     font-size: 30px;
@@ -14,7 +21,6 @@ nav {
     display: flex;
     justify-content: center;
     gap: 20px;
-    margin-top: 20px;
 }
 
 ul {
@@ -29,32 +35,41 @@ ul {
 
 .item_menu {
     list-style: none;
-}
 
-.campo_body {
-    background: #33972a;
-    justify-content:center;
-    align-items: baseline;
 }
 
 label {
-    background: rgb(110, 75, 46);
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    width: 350px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    padding: 4px;
+    display: block;
+    margin-bottom: 5px;
+
 }
 
 input,
 textarea,
 select {
     padding: 10px;
-    border: 1px solid #09388f;
     border-radius: 7px;
     font-size: 19px;
-    outline: nane;
+    outline: none;
     transition: border 0.3s;
+    border-radius: 50px;
+}
+
+.divi {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+}
+
+button {
+    height: 50px;
+    width: 100%;
+    border-radius: 50px;
+}
+form {
+    background-color: gold
 }
