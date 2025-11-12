@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Gestão Escolar — Final (Tema Claro)</title>
+    <style>
+        :root {
+            --bg: #f6f9fc;
+            --card: #ffffff;
+            --accent: #2b6cb0;
+            --muted: #6b7280;
+            --danger: #e53e3e;
+            --glass: rgba(43, 76, 129, 0.06);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, Segoe UI, Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: #111;
+            display: flex;
+            justify-content: center;
+            padding: 20px 12px;
+        }
+
+        .container,
+        .login-card,
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(13, 18, 30, 0.06);
+            padding: 18px
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            text-align: center
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            color: var(--accent)
+        }
+
+        .small {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin: 12px 0
+        }
+
+        input,
+        select,
+        textarea,
+        button {
+            font-family: inherit
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #e6eef6;
+            background: #fff
+        }
+
+        button {
+            background: var(--accent);
+            color: #fff;
+            border: 0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer
+        }
+
+        button.ghost {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent)
+        }
+
+        button.logout {
+            background: var(--danger)
+        }
+
+        .table-wrap {
+            overflow: auto;
+            border-radius: 10px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #eff6ff;
+            text-align: left
+        }
+
+        th {
+            background: #fbfdff;
+            font-weight: 600
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 12, 20, 0.35);
+            visibility: hidden;
+            opacity: 0;
+            transition: all .12s
+        }
+
+        .modal.open {
+            visibility: visible;
+            opacity: 1
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px
+        }
+
+        @media(max-width:820px) {
+            .form-grid {
+                grid-template-columns: 1fr
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #eef6ff;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 12px
+        }
+
+        .file-input {
+            display: none
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        @media(max-width:700px) {
+            .report-grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN -->
+    <div id="loginPage" class="login-card">
+        <h1>Gestão Escolar</h1>
+        <p class="small">Faça login como Administrador, Professor ou Aluno</p>
+        <form id="loginForm" style="margin-top:12px">
+            <input id="username" placeholder="Usuário" required />
+            <input id="password" type="password" placeholder="Senha" required />
+            <select id="role" required>
+                <option value="">Escolha o papel</option>
+                <option value="admin">Administrador</option>
+                <option value="professor">Professor</option>
+                <option value="aluno">Aluno</option>
+            </select>
+            <div style="display:flex;gap:8px;margin-top:8px">
+                <button type="submit">Entrar</button>
+                <button type="button" id="demoBtn" class="ghost">Demo</button>
+            </div>
+            <p id="errorMsg" class="small" style="color:var(--danger);display:none;margin-top:10px">Usuário, senha ou
+                papel inválido.</p>
+            <p class="small" style="margin-top:10px">Logins de exemplo: <strong>admin/1234</strong>,
+                <strong>prof10/1111</strong>, <strong>prof11/2222</strong>, <strong>aluno1/0000</strong></p>
+        </form>
+    </div>
+
+    <!-- APP -->
+    <div id="app" style="display:none;width:100%;max-width:1200px">
+        <div class="container">
+            <div class="header" style="margin-bottom:12px">
+                <div>
+                    <h1>Gestão Escolar — Painel</h1>
+                    <div class="small" id="userInfo"></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <button id="logoutBtn" class="logout">Sair</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div style="flex:1;display:flex;gap:8px;align-items:center">
+                    <input id="search" placeholder="Procurar por nome, nº, turma, nota..." />
+                    <select id="filterClass">
+                        <option value="">Todas as turmas</option>
+                    </select>
+                </div>
+
+                <div style="display:flex;gap:8px;align-items:center">
+                    <div id="adminTools">
+                        <button id="addBtn">+ Novo Estudante</button>
+                        <button id="exportBtn" class="ghost">Exportar JSON</button>
+                        <button id="importBtn" class="ghost">Importar JSON</button>
+                        <button id="printBtn" class="ghost">Imprimir</button>
+                    </div>
+
+                    <button id="classesBtn" class="ghost">Painel de Turmas</button>
+                    <button id="reportsBtn" class="ghost">Relatórios</button>
+
+                    <label style="margin:0">
+                        <input id="csvFile" type="file" accept=".csv" class="file-input" />
+                        <button id="importCsvBtn" class="ghost">Importar Notas (CSV)</button>
+                    </label>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Nº Estudante</th>
+                            <th>Turma</th>
+                            <th>Contacto</th>
+                            <th>Data Nasc.</th>
+                            <th>Última Nota</th>
+                            <th>Média</th>
+                            <th style="width:220px">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <p id="emptyNote" class="small" style="margin-top:12px">Nenhum estudante registado.</p>
+        </div>
+    </div>
+
+    <!-- Student Modal -->
+    <div id="modal" class="modal" aria-hidden="true">
+        <div class="card">
+            <h2 id="modalTitle">Novo Estudante</h2>
+            <form id="studentForm">
+                <div class="form-grid" style="margin-top:8px">
+                    <div><label class="small">Nome completo</label><input id="name" required /></div>
+                    <div><label class="small">Nº do estudante</label><input id="studentId" required /></div>
+                    <div><label class="small">Turma</label><input id="classroom" /></div>
+                    <div><label class="small">Contacto</label><input id="contact" /></div>
+                    <div><label class="small">Data de nascimento</label><input id="dob" type="date" /></div>
+                    <div><label class="small">Observações</label><input id="notes" /></div>
+                    <div><label class="small">Nota (0–20)</label><input id="grade" type="number" min="0" max="20"
+                            step="0.1" /></div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+                    <button type="button" id="cancel" class="ghost">Cancelar</button>
+                    <button type="submit" id="saveBtn">Guardar</button>
+                </div>
+                <p id="modalNote" class="small" style="margin-top:8px;color:var(--muted)"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Classes Modal -->
+    <div id="classesModal" class="modal" aria-hidden="true">
+        <div class="card">
+            <h2>Painel de Turmas</h2>
+            <div style="display:flex;gap:12px;align-items:flex-start;margin-top:12px">
+                <div style="flex:1">
+                    <label class="small">Nova turma</label>
+                    <input id="newClassName" placeholder="Ex: 10A" />
+                    <label class="small" style="margin-top:8px">Atribuir professor</label>
+                    <select id="teacherSelect">
+                        <option value="">(nenhum)</option>
+                    </select>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button id="createClassBtn">Criar Turma</button>
+                        <button id="closeClasses" class="ghost">Fechar</button>
+                    </div>
+                    <hr style="margin:12px 0" />
+                    <div id="classesList"></div>
+                </div>
+                <div style="flex:1">
+                    <h3 class="small">Professores</h3>
+                    <div id="teachersList" style="margin-top:8px"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Modal -->
+    <div id="reportsModal" class="modal" aria-hidden="true">
+        <div class="card">
+            <h2>Relatórios de Notas</h2>
+            <div class="report-grid" style="margin-top:12px">
+                <div>
+                    <h3 class="small">Média por Turma</h3>
+                    <div id="classAverages"></div>
+                </div>
+                <div>
+                    <h3 class="small">Top / Bottom</h3>
+                    <div id="topBottom"></div>
+                </div>
+            </div>
+            <hr style="margin:12px 0" />
+            <h3 class="small">Média por Estudante</h3>
+            <div id="studentAverages" style="max-height:260px;overflow:auto;margin-top:8px"></div>
+            <div style="display:flex;justify-content:flex-end;margin-top:12px">
+                <button id="closeReports" class="ghost">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ========================= Configurações iniciais / utilitários ========================= */
+        const DEFAULT_USERS = [
+            { username: 'admin', password: '1234', role: 'admin' },
+            { username: 'prof10', password: '1111', role: 'professor', classes: ['10A', '10B'] },
+            { username: 'prof11', password: '2222', role: 'professor', classes: ['11B'] },
+            { username: 'aluno1', password: '0000', role: 'aluno', studentId: '2025001' }
+        ];
+
+        const USERS_KEY = 'sgescolar_users_v_final';
+        const STUDENTS_KEY = 'sgescolar_students_v_final';
+        const CLASSES_KEY = 'sgescolar_classes_v_final';
+
+        function loadUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY)) || DEFAULT_USERS; } catch { return DEFAULT_USERS; } }
+        function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+        function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+        function escapeHtml(s) { return s ? String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", "&#039;") : ''; }
+        let USERS = loadUsers();
+
+        /* ========================= Login handling ========================= */
+        const loginForm = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('errorMsg');
+        const loginPage = document.getElementById('loginPage');
+        const app = document.getElementById('app');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userInfo = document.getElementById('userInfo');
+
+        if (localStorage.getItem('loggedUser')) showApp(JSON.parse(localStorage.getItem('loggedUser')));
+
+        loginForm.addEventListener('submit', e => {
+            e.preventDefault();
+            USERS = loadUsers();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const role = document.getElementById('role').value;
+            const user = USERS.find(u => u.username === username && u.password === password && u.role === role);
+            if (user) {
+                localStorage.setItem('loggedUser', JSON.stringify(user));
+                showApp(user);
+            } else {
+                errorMsg.style.display = 'block';
+                setTimeout(() => errorMsg.style.display = 'none', 2000);
+            }
+        });
+
+        document.getElementById('demoBtn').addEventListener('click', () => {
+            // quick demo login as admin
+            const user = loadUsers()[0] || DEFAULT_USERS[0];
+            localStorage.setItem('loggedUser', JSON.stringify(user));
+            showApp(user);
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('loggedUser');
+            app.style.display = 'none';
+            loginPage.style.display = 'block';
+        });
+
+        /* ========================= Show app & init ========================= */
+        function showApp(user) {
+            loginPage.style.display = 'none';
+            app.style.display = 'block';
+            userInfo.textContent = `${user.username} — ${user.role}${user.role === 'professor' && user.classes ? (' (' + user.classes.join(', ') + ')') : ''}`;
+            if (user.role !== 'admin') document.getElementById('adminTools').style.display = 'none';
+            if (user.role === 'aluno') { document.getElementById('importCsvBtn').classList.add('disabled'); document.getElementById('csvFile').disabled = true; }
+            initApp(user);
+        }
+
+        /* ========================= Principal ========================= */
+        function initApp(user) {
+            let USERS_LOCAL = loadUsers();
+            let students = JSON.parse(localStorage.getItem(STUDENTS_KEY) || '[]');
+            let classes = JSON.parse(localStorage.getItem(CLASSES_KEY) || '[]');
+            const fields = ['name', 'studentId', 'classroom', 'contact', 'dob', 'notes', 'grade'];
+            let editingId = null;
+
+            // normalize students to have grades array
+            students = students.map(s => {
+                if (!s.grades) {
+                    const arr = [];
+                    if (s.grade !== undefined && s.grade !== null && String(s.grade).trim() !== '') arr.push({ value: String(s.grade), by: 'import', at: new Date().toISOString() });
+                    return { ...s, grades: arr };
+                }
+                return s;
+            });
+
+            // init classes from teachers if empty
+            if (classes.length === 0) {
+                USERS_LOCAL.forEach(u => { if (u.role === 'professor' && u.classes) u.classes.forEach(c => { if (!classes.find(x => x.name === c)) classes.push({ name: c, teacher: u.username }); }); });
+                localStorage.setItem(CLASSES_KEY, JSON.stringify(classes));
+            }
+
+            // DOM elements
+            const tbody = document.querySelector('#studentsTable tbody');
+            const emptyNote = document.getElementById('emptyNote');
+            const modal = document.getElementById('modal');
+            const addBtn = document.getElementById('addBtn');
+            const cancelBtn = document.getElementById('cancel');
+            const studentForm = document.getElementById('studentForm');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalNote = document.getElementById('modalNote');
+            const search = document.getElementById('search');
+            const filterClass = document.getElementById('filterClass');
+            const exportBtn = document.getElementById('exportBtn');
+            const importBtn = document.getElementById('importBtn');
+            const printBtn = document.getElementById('printBtn');
+            const classesBtn = document.getElementById('classesBtn');
+            const classesModal = document.getElementById('classesModal');
+            const reportsBtn = document.getElementById('reportsBtn');
+            const reportsModal = document.getElementById('reportsModal');
+            const csvFile = document.getElementById('csvFile');
+            const importCsvBtn = document.getElementById('importCsvBtn');
+
+            const teacherSelect = document.getElementById('teacherSelect');
+            const newClassName = document.getElementById('newClassName');
+            const createClassBtn = document.getElementById('createClassBtn');
+            const classesList = document.getElementById('classesList');
+            const teachersList = document.getElementById('teachersList');
+            const closeClasses = document.getElementById('closeClasses');
+
+            const closeReports = document.getElementById('closeReports');
+            const classAveragesEl = document.getElementById('classAverages');
+            const topBottomEl = document.getElementById('topBottom');
+            const studentAveragesEl = document.getElementById('studentAverages');
+
+            function saveAll() { localStorage.setItem(STUDENTS_KEY, JSON.stringify(students)); localStorage.setItem(CLASSES_KEY, JSON.stringify(classes)); }
+            function computeAverage(grades) { if (!grades || grades.length === 0) return null; const nums = grades.map(g => parseFloat(g.value)).filter(n => !isNaN(n)); if (nums.length === 0) return null; return nums.reduce((a, b) => a + b, 0) / nums.length; }
+
+            /* ---------- Render tabela ---------- */
+            function render() {
+                tbody.innerHTML = '';
+                let list = students.slice();
+                if (user.role === 'professor') { const allowed = new Set(user.classes || []); list = list.filter(s => allowed.has((s.classroom || '').toString())); }
+                else if (user.role === 'aluno') { list = list.filter(s => s.studentId === user.studentId); }
+
+                const q = (search.value || '').trim().toLowerCase();
+                const fclass = filterClass.value;
+                list = list.filter(s => {
+                    if (fclass && s.classroom !== fclass) return false;
+                    if (!q) return true;
+                    const avg = computeAverage(s.grades);
+                    return [s.name, s.studentId, s.classroom, s.contact, s.notes, String(avg || '')].join(' ').toLowerCase().includes(q);
+                });
+
+                emptyNote.style.display = list.length ? 'none' : 'block';
+                list.forEach(s => {
+                    const tr = document.createElement('tr');
+                    const last = s.grades && s.grades.length ? s.grades[s.grades.length - 1].value : '—';
+                    const avg = computeAverage(s.grades);
+                    let actions = '';
+                    if (user.role === 'admin') {
+                        actions = `<button class="ghost" onclick="editStudent('${s.id}')">Editar</button>
+                   <button onclick="deleteStudent('${s.id}')">Eliminar</button>`;
+                    } else if (user.role === 'professor') {
+                        const allowed = new Set(user.classes || []);
+                        if (allowed.has((s.classroom || '').toString())) {
+                            actions = `<button onclick="editGrade('${s.id}')">Lançar/Editar Nota</button>`;
+                        } else actions = `<button class="ghost" disabled>Sem acesso</button>`;
+                    } else actions = `<button class="ghost" disabled>Ver</button>`;
+
+                    tr.innerHTML = `<td>${escapeHtml(s.name)}</td>
+                      <td>${escapeHtml(s.studentId)}</td>
+                      <td>${escapeHtml(s.classroom || '—')}</td>
+                      <td class="small">${escapeHtml(s.contact || '—')}</td>
+                      <td class="small">${s.dob || '—'}</td>
+                      <td>${last}</td>
+                      <td>${avg !== null ? Number(avg).toFixed(2) : '—'}</td>
+                      <td>${actions}</td>`;
+                    tbody.appendChild(tr);
+                });
+                rebuildFilter();
+            }
+
+            function rebuildFilter() {
+                let classSet = new Set(students.map(s => s.classroom).filter(Boolean));
+                let classArray = Array.from(classSet);
+                if (user.role === 'professor') classArray = classArray.filter(c => (user.classes || []).includes(c));
+                filterClass.innerHTML = '<option value="">Todas as turmas</option>' + classArray.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+            }
+
+            /* ---------- Modal open/close ---------- */
+            function openModal(title, opts = {}) {
+                modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); modalTitle.textContent = title; modalNote.textContent = '';
+                // control fields
+                const gradeEl = document.getElementById('grade');
+                const nameEl = document.getElementById('name');
+                const idEl = document.getElementById('studentId');
+                const classEl = document.getElementById('classroom');
+                const contactEl = document.getElementById('contact');
+                const dobEl = document.getElementById('dob');
+                const notesEl = document.getElementById('notes');
+                if (opts.gradeOnly) {
+                    gradeEl.disabled = false; nameEl.disabled = idEl.disabled = classEl.disabled = contactEl.disabled = dobEl.disabled = notesEl.disabled = true;
+                    document.getElementById('saveBtn').textContent = 'Guardar Nota';
+                    modalNote.textContent = `Apenas a nota será guardada (autor: ${opts.gradeAuthor || 'desconhecido'}).`;
+                } else {
+                    gradeEl.disabled = nameEl.disabled = idEl.disabled = classEl.disabled = contactEl.disabled = dobEl.disabled = notesEl.disabled = false;
+                    document.getElementById('saveBtn').textContent = 'Guardar';
+                }
+            }
+            function closeModal() { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); studentForm.reset(); editingId = null; modalNote.textContent = ''; }
+
+            /* ---------- CRUD ---------- */
+            function addStudent(data) {
+                const s = { ...data, id: uid(), grades: [] };
+                if (data.grade !== undefined && data.grade !== null && String(data.grade).trim() !== '') s.grades.push({ value: String(data.grade), by: 'admin', at: new Date().toISOString() });
+                students.unshift(s); saveAll(); render();
+            }
+            function updateStudent(id, data) {
+                const i = students.findIndex(s => s.id === id);
+                if (i > -1) {
+                    if (data.grade !== undefined && data.grade !== null && String(data.grade).trim() !== '') {
+                        students[i].grades = students[i].grades || [];
+                        students[i].grades.push({ value: String(data.grade), by: 'admin', at: new Date().toISOString() });
+                    }
+                    students[i] = { ...students[i], ...data };
+                    saveAll(); render();
+                }
+            }
+            function deleteStudentById(id) {
+                if (!confirm('Eliminar este estudante?')) return;
+                students = students.filter(s => s.id !== id);
+                saveAll(); render();
+            }
+
+            studentForm.addEventListener('submit', e => {
+                e.preventDefault();
+                const data = {};
+                fields.forEach(f => data[f] = document.getElementById(f).value.trim());
+                if (data.grade === '') data.grade = undefined;
+                const logged = JSON.parse(localStorage.getItem('loggedUser') || '{}');
+                if (editingId) {
+                    if (logged.role === 'professor') {
+                        // push grade by professor
+                        updateStudent(editingId, { grade: data.grade });
+                        const st = students.find(s => s.id === editingId);
+                        if (st && st.grades && st.grades.length) {
+                            st.grades[st.grades.length - 1].by = logged.username;
+                            st.grades[st.grades.length - 1].at = new Date().toISOString();
+                            saveAll();
+                        }
+                    } else {
+                        updateStudent(editingId, data);
+                    }
+                } else {
+                    addStudent(data);
+                }
+                closeModal();
+            });
+
+            /* ---------- Buttons ---------- */
+            if (user.role === 'admin') {
+                addBtn.addEventListener('click', () => { editingId = null; openModal('Novo Estudante', { gradeOnly: false }); });
+                cancelBtn.addEventListener('click', closeModal);
+                modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+                document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+            } else {
+                addBtn && addBtn.classList.add('disabled');
+            }
+
+            search.addEventListener('input', render);
+            filterClass.addEventListener('change', render);
+
+            exportBtn.addEventListener('click', () => {
+                const payload = { students, classes, users: loadUsers() };
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'sistema_escolar_backup.json'; a.click(); URL.revokeObjectURL(url);
+            });
+
+            importBtn.addEventListener('click', () => {
+                if (user.role !== 'admin') return alert('Apenas o administrador pode importar o backup completo.');
+                const txt = prompt('Cole aqui o JSON exportado (backup: students, classes, users):');
+                if (!txt) return;
+                try {
+                    const imp = JSON.parse(txt);
+                    if (imp.students && Array.isArray(imp.students)) students = imp.students;
+                    if (imp.classes && Array.isArray(imp.classes)) classes = imp.classes;
+                    if (imp.users && Array.isArray(imp.users)) { saveUsers(imp.users); USERS = loadUsers(); }
+                    saveAll(); localStorage.setItem(CLASSES_KEY, JSON.stringify(classes)); render();
+                    alert('Importação concluída.');
+                } catch (err) { alert('Erro: ' + err.message); }
+            });
+
+            printBtn.addEventListener('click', () => window.print());
+
+            /* ========== Classes panel ========== */
+            function teacherListForSelect() {
+                const teachers = loadUsers().filter(u => u.role === 'professor');
+                teacherSelect.innerHTML = '<option value="">(nenhum)</option>' + teachers.map(t => `<option value="${escapeHtml(t.username)}">${escapeHtml(t.username)}</option>`).join('');
+                teachersList.innerHTML = teachers.map(t => {
+                    const cls = (t.classes || []).join(', ') || '(nenhuma)';
+                    return `<div style="padding:8px;border-bottom:1px solid #eef6ff"><strong>${escapeHtml(t.username)}</strong><div class="small">Turmas: ${escapeHtml(cls)}</div></div>`;
+                }).join('');
+            }
+            function rebuildClassesUI() {
+                classesList.innerHTML = classes.map(c => {
+                    return `<div style="padding:8px;border-bottom:1px solid #eef6ff;display:flex;justify-content:space-between;align-items:center">
+        <div><strong>${escapeHtml(c.name)}</strong><div class="small">Professor: ${escapeHtml(c.teacher || '(nenhum)')}</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="ghost" onclick="assignTeacher('${escapeHtml(c.name)}')">Atribuir</button>
+          <button onclick="deleteClass('${escapeHtml(c.name)}')">Eliminar</button>
+        </div>
+      </div>`;
+                }).join('');
+                teacherListForSelect();
+            }
+            window.assignTeacher = function (className) {
+                const teachers = loadUsers().filter(u => u.role === 'professor');
+                const names = teachers.map(t => t.username).join(', ');
+                const pick = prompt(`Escolha professor para a turma ${className} (nomes: ${names}). Deixe vazio para remover.`);
+                const teacher = teachers.find(t => t.username === pick);
+                classes = classes.map(c => c.name === className ? { ...c, teacher: teacher ? teacher.username : '' } : c);
+                // update users
+                let usersNow = loadUsers();
+                usersNow = usersNow.map(u => u.role === 'professor' ? { ...u, classes: (u.classes || []).filter(x => x !== className) } : u);
+                if (teacher) usersNow = usersNow.map(u => u.username === teacher.username ? { ...u, classes: Array.from(new Set([...(u.classes || []), className])) } : u);
+                saveUsers(usersNow); USERS = loadUsers(); localStorage.setItem(CLASSES_KEY, JSON.stringify(classes)); rebuildClassesUI(); alert('Atribuição salva.');
+            };
+            window.deleteClass = function (className) {
+                if (!confirm(`Eliminar turma ${className}?`)) return;
+                classes = classes.filter(c => c.name !== className);
+                let usersNow = loadUsers();
+                usersNow = usersNow.map(u => u.role === 'professor' ? { ...u, classes: (u.classes || []).filter(x => x !== className) } : u);
+                saveUsers(usersNow); USERS = loadUsers(); localStorage.setItem(CLASSES_KEY, JSON.stringify(classes)); rebuildClassesUI(); render();
+            };
+            createClassBtn.addEventListener('click', () => {
+                const name = (newClassName.value || '').trim();
+                const teacher = (teacherSelect.value || '').trim();
+                if (!name) return alert('Escreve o nome da turma.');
+                if (classes.find(c => c.name === name)) return alert('Essa turma já existe.');
+                classes.push({ name, teacher: teacher || '' });
+                let usersNow = loadUsers();
+                if (teacher) usersNow = usersNow.map(u => u.username === teacher ? { ...u, classes: Array.from(new Set([...(u.classes || []), name])) } : u);
+                saveUsers(usersNow);
+                USERS = loadUsers();
+                localStorage.setItem(CLASSES_KEY, JSON.stringify(classes));
+                newClassName.value = ''; rebuildClassesUI(); alert('Turma criada.');
+            });
+            classesBtn.addEventListener('click', () => {
+                if (user.role !== 'admin') return alert('Apenas o admin.');
+                classesModal.classList.add('open'); classesModal.setAttribute('aria-hidden', 'false'); rebuildClassesUI();
+            });
+            closeClasses.addEventListener('click', () => { classesModal.classList.remove('open'); classesModal.setAttribute('aria-hidden', 'true'); });
+
+            /* ===== CSV import (studentId,grade) ===== */
+            importCsvBtn.addEventListener('click', () => { if (user.role === 'aluno') return alert('Sem permissão'); csvFile.click(); });
+            csvFile.addEventListener('change', async ev => {
+                const f = ev.target.files[0]; if (!f) return;
+                const text = await f.text(); const rows = text.split(/\r?\n/).map(r => r.trim()).filter(r => r.length > 0);
+                let success = 0, fail = 0;
+                rows.forEach(r => {
+                    const parts = r.split(',');
+                    if (parts.length < 2) { fail++; return; }
+                    const sid = parts[0].trim(); const val = parts[1].trim();
+                    const st = students.find(s => s.studentId === sid);
+                    if (!st) { fail++; return; }
+                    if (user.role === 'professor') { const allowed = new Set(user.classes || []); if (!allowed.has((st.classroom || '').toString())) { fail++; return; } }
+                    st.grades = st.grades || []; st.grades.push({ value: String(val), by: user.username, at: new Date().toISOString() }); success++;
+                });
+                saveAll(); render(); alert(`Import concluída: ${success} lançadas, ${fail} falharam.`); csvFile.value = '';
+            });
+
+            /* ===== Reports ===== */
+            reportsBtn.addEventListener('click', () => {
+                reportsModal.classList.add('open'); reportsModal.setAttribute('aria-hidden', 'false');
+                // class averages
+                const classMap = {};
+                students.forEach(s => {
+                    const c = s.classroom || '(sem turma)';
+                    const avg = computeAverage(s.grades);
+                    if (!classMap[c]) classMap[c] = { sum: 0, count: 0, students: [] };
+                    if (avg !== null) { classMap[c].sum += avg; classMap[c].count++; classMap[c].students.push({ name: s.name, avg }); }
+                });
+                classAveragesEl.innerHTML = Object.keys(classMap).map(k => {
+                    const obj = classMap[k]; const avgClass = obj.count ? (obj.sum / obj.count) : null;
+                    return `<div style="padding:8px;border-bottom:1px solid #eef6ff"><strong>${escapeHtml(k)}</strong><div class="small">Média turma: ${avgClass !== null ? Number(avgClass).toFixed(2) : '—'}</div></div>`;
+                }).join('') || '<div class="small">Sem dados.</div>';
+                // top/bottom
+                const scored = students.map(s => ({ name: s.name, avg: computeAverage(s.grades) })).filter(x => x.avg !== null);
+                scored.sort((a, b) => b.avg - a.avg);
+                const top = scored.slice(0, 3); const bottom = scored.slice(-3).reverse();
+                topBottomEl.innerHTML = `<div><strong>Top</strong>${top.length ? top.map(t => `<div class="small">${escapeHtml(t.name)} — ${Number(t.avg).toFixed(2)}</div>`).join('') : '<div class="small">—</div>'}</div>
+      <div style="margin-top:8px"><strong>Bottom</strong>${bottom.length ? bottom.map(t => `<div class="small">${escapeHtml(t.name)} — ${Number(t.avg).toFixed(2)}</div>`).join('') : '<div class="small">—</div>'}</div>`;
+                studentAveragesEl.innerHTML = students.map(s => { const avg = computeAverage(s.grades); return `<div style="padding:6px;border-bottom:1px solid #eef6ff"><strong>${escapeHtml(s.name)}</strong><div class="small">Nº: ${escapeHtml(s.studentId)} • Turma: ${escapeHtml(s.classroom || '—')} • Média: ${avg !== null ? Number(avg).toFixed(2) : '—'}</div></div>` }).join('');
+            });
+            document.getElementById('closeReports').addEventListener('click', () => { reportsModal.classList.remove('open'); reportsModal.setAttribute('aria-hidden', 'true'); });
+
+            /* ===== Expose global functions for buttons in rows ===== */
+            window.editStudent = function (id) {
+                if (user.role !== 'admin') return alert('Sem permissão.');
+                const s = students.find(x => x.id === id); if (!s) return alert('Estudante não encontrado');
+                editingId = id;
+                fields.forEach(f => {
+                    if (f === 'grade') { const last = s.grades && s.grades.length ? s.grades[s.grades.length - 1].value : ''; document.getElementById(f).value = last; }
+                    else document.getElementById(f).value = s[f] || '';
+                });
+                openModal('Editar Estudante', { gradeOnly: false });
+            };
+            window.deleteStudent = function (id) { if (user.role !== 'admin') return alert('Sem permissão.'); deleteStudentById(id); };
+
+            window.editGrade = function (id) {
+                const s = students.find(x => x.id === id); if (!s) return alert('Estudante não encontrado');
+                if (user.role === 'professor') { const allowed = new Set(user.classes || []); if (!allowed.has((s.classroom || '').toString())) return alert('Aluno fora das suas turmas.'); }
+                editingId = id;
+                fields.forEach(f => {
+                    if (f === 'grade') { const last = s.grades && s.grades.length ? s.grades[s.grades.length - 1].value : ''; document.getElementById(f).value = last; }
+                    else document.getElementById(f).value = s[f] || '';
+                });
+                openModal(user.role === 'professor' ? 'Lançar / Editar Nota' : 'Editar Estudante', { gradeOnly: user.role === 'professor', gradeAuthor: user.username });
+            };
+
+            /* ===== initial data if empty ===== */
+            if (students.length === 0) {
+                students = [
+                    { id: uid(), name: 'Ana Pereira', studentId: '2025001', classroom: '10A', contact: '(244) 923-000-111', dob: '2008-04-02', notes: 'Bolseira', grades: [{ value: '18', by: 'import', at: new Date().toISOString() }] },
+                    { id: uid(), name: 'João Silva', studentId: '2025003', classroom: '10B', contact: '(244) 923-000-222', dob: '2008-06-10', notes: '', grades: [{ value: '14.5', by: 'import', at: new Date().toISOString() }] },
+                    { id: uid(), name: 'Miguel Costa', studentId: '2025002', classroom: '11B', contact: 'miguel@email.com', dob: '2007-09-15', notes: '', grades: [{ value: '16', by: 'import', at: new Date().toISOString() }] }
+                ];
+                localStorage.setItem(STUDENTS_KEY, JSON.stringify(students));
+            }
+            if (classes.length === 0) {
+                classes = classes || [];
+                USERS_LOCAL.forEach(u => { if (u.role === 'professor' && u.classes) u.classes.forEach(c => { if (!classes.find(x => x.name === c)) classes.push({ name: c, teacher: u.username }); }) });
+                localStorage.setItem(CLASSES_KEY, JSON.stringify(classes));
+            }
+
+            // finalize
+            saveAll(); render();
+        } // end initApp
+
+        /* simple loader for users used globally */
+        function loadUsers() { try { return JSON.parse(localStorage.getItem('sgescolar_users_v_final')) || DEFAULT_USERS; } catch { return DEFAULT_USERS; } }
+        function saveUsers(u) { localStorage.setItem('sgescolar_users_v_final', JSON.stringify(u)); }
+    </script>
+
+</body>
+
+</html>

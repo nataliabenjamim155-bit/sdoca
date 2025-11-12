@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sistema Escolar Completo</title>
+    <style>
+        :root {
+            --accent: #2b6cb0;
+            --muted: #666;
+        }
+
+        body {
+            font-family: Inter, Segoe UI, Arial;
+            margin: 0;
+            background: #f0f4fa;
+            color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-card,
+        .container {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+
+        .login-card {
+            max-width: 360px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 16px;
+            color: var(--accent);
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #22589d;
+        }
+
+        button.ghost {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        button.logout {
+            background: #e53e3e;
+            width: auto;
+            padding: 8px 12px;
+            margin-left: 8px;
+        }
+
+        button.logout:hover {
+            background: #c53030;
+        }
+
+        .error {
+            color: #b91c1c;
+            font-size: 13px;
+            display: none;
+        }
+
+        #app {
+            display: none;
+            width: 100%;
+            max-width: 980px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eef3fb;
+            text-align: left;
+        }
+
+        th {
+            background: #fafcff;
+        }
+
+        .small {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 12, 20, 0.45);
+            visibility: hidden;
+            opacity: 0;
+            transition: all .18s;
+        }
+
+        .modal.open {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .card {
+            background: #fff;
+            padding: 18px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 680px;
+            box-shadow: 0 8px 30px rgba(20, 20, 30, 0.12);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media(max-width:700px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN -->
+    <div id="loginPage" class="login-card">
+        <h1>Login Escolar</h1>
+        <form id="loginForm">
+            <input id="username" type="text" placeholder="Usuário" required>
+            <input id="password" type="password" placeholder="Senha" required>
+            <select id="role" required>
+                <option value="">Selecione o nível</option>
+                <option value="admin">Administrador</option>
+                <option value="professor">Professor</option>
+                <option value="aluno">Aluno</option>
+            </select>
+            <button type="submit">Entrar</button>
+            <p id="errorMsg" class="error">Usuário, senha ou nível incorretos.</p>
+        </form>
+    </div>
+
+    <!-- SISTEMA -->
+    <div id="app">
+        <div class="container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h1>Sistema de Gestão Escolar</h1>
+                <div style="display:flex; align-items:center;">
+                    <p id="userInfo" class="small"></p>
+                    <button class="logout" id="logoutBtn">Sair</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div style="flex:1; display:flex; gap:8px; align-items:center;">
+                    <input id="search" type="text" placeholder="Procurar por nome, turma, nº ou nota">
+                    <select id="filterClass">
+                        <option value="">Todas as turmas</option>
+                    </select>
+                </div>
+                <div class="toolbar" id="adminTools">
+                    <button id="addBtn">+ Novo Estudante</button>
+                    <button id="exportBtn" class="ghost">Exportar JSON</button>
+                    <button id="importBtn" class="ghost">Importar JSON</button>
+                    <button id="printBtn" class="ghost">Imprimir</button>
+                </div>
+            </div>
+
+            <table id="studentsTable">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Nº Estudante</th>
+                        <th>Turma</th>
+                        <th>Contacto</th>
+                        <th>Data Nasc.</th>
+                        <th>Nota</th>
+                        <th style="width:165px">Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <p class="small" id="emptyNote">Nenhum estudante registado.</p>
+
+            <!-- Modal Form -->
+            <div id="modal" class="modal" aria-hidden="true">
+                <div class="card">
+                    <h2 id="modalTitle">Novo Estudante</h2>
+                    <form id="studentForm">
+                        <div class="form-grid">
+                            <div><label>Nome completo</label><input id="name" type="text" required></div>
+                            <div><label>Nº do estudante</label><input id="studentId" type="text" required></div>
+                            <div><label>Turma</label><input id="classroom" type="text"></div>
+                            <div><label>Contacto</label><input id="contact" type="text"></div>
+                            <div><label>Data de nascimento</label><input id="dob" type="date"></div>
+                            <div><label>Observações</label><input id="notes" type="text"></div>
+                            <div><label>Nota</label><input id="grade" type="number" min="0" max="20" step="0.1"></div>
+                        </div>
+                        <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:8px;">
+                            <button type="button" id="cancel" class="ghost">Cancelar</button>
+                            <button type="submit">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGIN ---
+        const USERS = [
+            { username: 'admin', password: '1234', role: 'admin' },
+            { username: 'prof', password: '4321', role: 'professor' },
+            { username: 'aluno1', password: '0000', role: 'aluno', studentId: '2025001' }
+        ];
+        const loginForm = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('errorMsg');
+        const loginPage = document.getElementById('loginPage');
+        const app = document.getElementById('app');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userInfo = document.getElementById('userInfo');
+
+        if (localStorage.getItem('loggedUser')) showApp(JSON.parse(localStorage.getItem('loggedUser')));
+
+        loginForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const role = document.getElementById('role').value;
+            let user = USERS.find(u => u.username === username && u.password === password && u.role === role);
+            if (user) {
+                localStorage.setItem('loggedUser', JSON.stringify(user));
+                showApp(user);
+            } else errorMsg.style.display = 'block';
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('loggedUser');
+            app.style.display = 'none';
+            loginPage.style.display = 'block';
+        });
+
+        function showApp(user) {
+            loginPage.style.display = 'none';
+            app.style.display = 'block';
+            userInfo.textContent = `${user.username} (${user.role})`;
+            if (user.role !== 'admin') document.getElementById('adminTools').style.display = 'none';
+            initApp(user);
+        }
+
+        // --- SISTEMA ESCOLAR ---
+        function initApp(user) {
+            const STORAGE_KEY = 'sgescolar_students_v3';
+            let students = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            let editingId = null;
+
+            const tbody = document.querySelector('#studentsTable tbody');
+            const emptyNote = document.getElementById('emptyNote');
+            const modal = document.getElementById('modal');
+            const addBtn = document.getElementById('addBtn');
+            const cancelBtn = document.getElementById('cancel');
+            const studentForm = document.getElementById('studentForm');
+            const modalTitle = document.getElementById('modalTitle');
+            const search = document.getElementById('search');
+            const filterClass = document.getElementById('filterClass');
+            const exportBtn = document.getElementById('exportBtn');
+            const importBtn = document.getElementById('importBtn');
+            const printBtn = document.getElementById('printBtn');
+            const fields = ['name', 'studentId', 'classroom', 'contact', 'dob', 'notes', 'grade'];
+
+            function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(students)); }
+            function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+            function escapeHtml(str) { return str ? String(str).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;') : ''; }
+
+            function render() {
+                tbody.innerHTML = '';
+                const q = search.value.trim().toLowerCase();
+                const fclass = filterClass.value;
+                const list = students.filter(s => {
+                    if (fclass && s.classroom !== fclass) return false;
+                    if (!q) return true;
+                    return [s.name, s.studentId, s.classroom, s.contact, (s.notes || ''), (s.grade || '')].join(' ').toLowerCase().includes(q);
+                });
+                emptyNote.style.display = list.length === 0 ? 'block' : 'none';
+                list.forEach(s => {
+                    const tr = document.createElement('tr');
+                    let buttons = '';
+                    if (user.role === 'admin') {
+                        buttons = `<button class="ghost" onclick="editStudent('${s.id}')">Editar</button>
+                 <button onclick="deleteStudent('${s.id}')">Eliminar</button>`;
+                    } else if (user.role === 'aluno' && s.studentId === user.studentId) {
+                        buttons = `<button disabled class="ghost">Ver</button>`;
+                    } else buttons = '';
+                    tr.innerHTML = `<td>${escapeHtml(s.name)}</td>
+                    <td>${escapeHtml(s.studentId)}</td>
+                    <td>${escapeHtml(s.classroom || '—')}</td>
+                    <td class="small">${escapeHtml(s.contact || '—')}</td>
+                    <td class="small">${s.dob || '—'}</td>
+                    <td>${s.grade || '—'}</td>
+                    <td>${buttons}</td>`;
+                    tbody.appendChild(tr);
+                });
+                rebuildFilter();
+            }
+
+            function rebuildFilter() {
+                const classes = [...new Set(students.map(s => s.classroom).filter(Boolean))];
+                filterClass.innerHTML = '<option value="">Todas as turmas</option>' +
+                    classes.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+            }
+
+            function openModal(title) { modal.classList.add('open'); modalTitle.textContent = title; }
+            function closeModal() { modal.classList.remove('open'); studentForm.reset(); editingId = null; }
+
+            function addStudent(data) { data.id = uid(); students.unshift(data); save(); render(); }
+            function updateStudent(id, data) { const i = students.findIndex(s => s.id === id); if (i > -1) { students[i] = { ...students[i], ...data }; save(); render(); } }
+            function deleteStudent(id) { if (!confirm('Eliminar este estudante?')) return; students = students.filter(s => s.id !== id); save(); render(); }
+
+            studentForm.addEventListener('submit', e => {
+                e.preventDefault();
+                const data = {};
+                fields.forEach(f => data[f] = document.getElementById(f).value.trim());
+                if (editingId) updateStudent(editingId, data); else addStudent(data);
+                closeModal();
+            });
+
+            if (user.role === 'admin') {
+                addBtn.addEventListener('click', () => openModal('Novo Estudante'));
+                cancelBtn.addEventListener('click', closeModal);
+                modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+                document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+            }
+
+            search.addEventListener('input', render);
+            filterClass.addEventListener('change', render);
+            exportBtn.addEventListener('click', () => {
+                const blob = new Blob([JSON.stringify(students, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'estudantes.json'; a.click(); URL.revokeObjectURL(url);
+            });
+            importBtn.addEventListener('click', () => {
+                if (user.role !== 'admin') return alert('Apenas o administrador pode importar.');
+                const txt = prompt('Cole aqui o JSON dos estudantes:');
+                if (!txt) return;
+                try {
+                    const imported = JSON.parse(txt);
+                    if (!Array.isArray(imported)) throw new Error('Formato inválido');
+                    imported.forEach(it => { it.id = uid(); students.push(it); });
+                    save(); render(); alert('Importação concluída.');
+                } catch (err) { alert('Erro: ' + err.message); }
+            });
+            printBtn.addEventListener('click', () => window.print());
+
+            window.editStudent = id => { const s = students.find(x => x.id === id); if (!s) return alert('Estudante não encontrado'); editingId = id; fields.forEach(f => document.getElementById(f).value = s[f] || ''); openModal('Editar Estudante'); };
+            window.deleteStudent = deleteStudent;
+
+            // Dados iniciais
+            if (students.length === 0) {
+                students = [
+                    { id: uid(), name: 'Ana Pereira', studentId: '2025001', classroom: '10A', contact: '(244)923-000-111', dob: '2008-04-02', notes: 'Bolseira', grade: '18' },
+                    { id: uid(), name: 'Miguel Costa', studentId: '2025002', classroom: '11B', contact: 'miguel@email.com', dob: '2007-09-15', notes: '', grade: '16' }
+                ];
+                save();
+            }
+
+            render();
+        }
+    </script>
+
+</body>
+
+</html>
